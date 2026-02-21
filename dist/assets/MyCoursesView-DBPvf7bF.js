@@ -1,0 +1,1 @@
+import{g as e,n as t,p as n,x as r}from"./index-BJaZLCIi.js";var i={},a={class:`container mx-auto p-4`};function o(t,i){return r(),e(`div`,a,[...i[0]||=[n(`h1`,{class:`text-3xl font-bold`},`Mes cours`,-1),n(`p`,null,`Espace étudiant à venir...`,-1)]])}var s=t(i,[[`render`,o]]);export{s as default};

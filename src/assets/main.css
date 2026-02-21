@@ -1,0 +1,136 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+/* Themes configuration - Professional E-Learning Palette */
+@plugin "daisyui/theme" {
+    name: "stratinka-light";
+    default: true;
+    color-scheme: "light";
+
+    /* Professional Blue & Gray Palette */
+    --color-base-100: oklch(99% 0.005 240);
+    /* Clean White */
+    --color-base-200: oklch(97% 0.005 240);
+    /* Light Gray Background */
+    --color-base-300: oklch(92% 0.01 240);
+    /* Border Gray */
+    --color-base-content: oklch(20% 0.03 260);
+    /* Dark Text */
+
+    --color-primary: oklch(45% 0.15 260);
+    /* Trustworthy Deep Blue */
+    --color-primary-content: oklch(98% 0.01 260);
+
+    --color-secondary: oklch(65% 0.15 240);
+    /* Soft Blue */
+    --color-secondary-content: oklch(98% 0.01 240);
+
+    --color-accent: oklch(60% 0.18 150);
+    /* Green for Progress/Success */
+    --color-accent-content: oklch(98% 0.01 150);
+
+    --color-neutral: oklch(30% 0.05 260);
+    /* Dark Slate */
+    --color-neutral-content: oklch(98% 0.01 260);
+
+    --color-info: oklch(60% 0.15 240);
+    --color-success: oklch(65% 0.18 150);
+    --color-warning: oklch(85% 0.15 80);
+    --color-error: oklch(60% 0.20 25);
+
+    --rounded-box: 0.5rem;
+    --rounded-btn: 0.25rem;
+    /* More professional squared look */
+    --rounded-badge: 0.25rem;
+}
+
+@plugin "daisyui/theme" {
+    name: "stratinka-dark";
+    default: false;
+    color-scheme: "dark";
+
+    /* Modern Dark Theme */
+    --color-base-100: oklch(18% 0.02 260);
+    /* Deep Dark Blue/Gray */
+    --color-base-200: oklch(15% 0.02 260);
+    --color-base-300: oklch(12% 0.02 260);
+    --color-base-content: oklch(94% 0.01 260);
+
+    --color-primary: oklch(60% 0.15 260);
+    /* Brighter Blue for Dark Mode */
+    --color-primary-content: oklch(98% 0.01 260);
+
+    --color-secondary: oklch(50% 0.15 240);
+    --color-secondary-content: oklch(98% 0.01 240);
+
+    --color-accent: oklch(65% 0.15 150);
+    --color-accent-content: oklch(15% 0.05 150);
+
+    --color-neutral: oklch(25% 0.02 260);
+    --color-neutral-content: oklch(94% 0.01 260);
+
+    --color-info: oklch(65% 0.15 240);
+    --color-success: oklch(70% 0.15 150);
+    --color-warning: oklch(80% 0.15 80);
+    --color-error: oklch(65% 0.20 25);
+
+    --rounded-box: 0.5rem;
+    --rounded-btn: 0.25rem;
+    --rounded-badge: 0.25rem;
+}
+
+/* Base Styles */
+@layer base {
+    body {
+        @apply antialiased font-sans bg-base-100 text-base-content;
+    }
+}
+
+/* Components Layer */
+@layer components {
+    .btn {
+        @apply font-medium tracking-wide normal-case transition-all;
+    }
+
+    .btn-primary {
+        @apply shadow-sm hover:shadow active:scale-95;
+    }
+
+    .card {
+        @apply bg-base-100 border border-base-200 overflow-hidden;
+    }
+
+    .input,
+    .select,
+    .textarea {
+        @apply bg-base-100 border-base-300 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none;
+    }
+}
+
+/* Utilities */
+@layer utilities {
+    .text-shadow {
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .text-balance {
+        text-wrap: balance;
+    }
+
+    /* Custom Scrollbar for Sidebar */
+    .scrollbar-thin {
+        scrollbar-width: thin;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-track {
+        @apply bg-base-200;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+        @apply bg-base-content/20 rounded-full hover:bg-base-content/40;
+    }
+}

@@ -1,0 +1,2 @@
+# stratinka
+stratinka

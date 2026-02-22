@@ -1,173 +1,141 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useCourseStore } from '../stores/courses'
+import { useCategoryStore } from '../stores/categories'
 import CourseCard from '../components/CourseCard.vue'
+import { useRouter } from 'vue-router'
 
 const courseStore = useCourseStore()
+const categoryStore = useCategoryStore()
+const router = useRouter()
 
 onMounted(() => {
   courseStore.fetchCourses()
+  categoryStore.fetchCategories()
 })
+
+const goToCategory = (slug) => {
+  router.push({ path: '/courses', query: { category: slug } })
+}
 </script>
 
 <template>
   <div class="min-h-screen bg-base-100 pb-16">
-    
     <!-- Hero Section -->
-    <section class="relative bg-neutral h-[400px] md:h-[500px] flex items-center overflow-hidden">
-      <!-- Background Image Placeholder (Gradient/Pattern) -->
-      <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1471&q=80')] bg-cover bg-center opacity-40 mix-blend-overlay"></div>
-      <div class="absolute inset-0 bg-gradient-to-r from-base-100 to-transparent opacity-90 lg:opacity-75"></div>
-      
-      <div class="container mx-auto px-4 relative z-10">
-        <div class="bg-base-100 p-8 md:p-10 max-w-lg shadow-xl shadow-base-content/10 rounded-none md:rounded-lg animate-slide-up">
-            <h1 class="text-3xl md:text-4xl font-bold mb-4 text-base-content leading-tight">
-                Apprenez sans limites
-            </h1>
-            <p class="text-base-content/70 mb-6 text-lg">
-                Développez de nouvelles compétences pour atteindre vos objectifs professionnels et personnels.
-            </p>
-            <div class="flex flex-col sm:flex-row gap-3">
-                <router-link to="/courses" class="btn btn-primary btn-lg rounded-none font-bold w-full sm:w-auto">
-                    Explorer les cours
-                </router-link>
-            </div>
+    <section class="relative bg-neutral h-[380px] md:h-[460px] flex items-center overflow-hidden">
+      <div
+        class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1471&q=80')] bg-cover bg-center opacity-30"
+      ></div>
+      <div
+        class="absolute inset-0 bg-gradient-to-r from-base-100 via-base-100/80 to-transparent"
+      ></div>
+
+      <div class="container mx-auto px-6 relative z-10">
+        <div class="max-w-xl">
+          <h1 class="text-3xl md:text-5xl font-bold mb-4 text-base-content leading-tight">
+            Apprenez sans limites
+          </h1>
+          <p class="text-base-content/70 mb-8 text-lg">
+            Développez de nouvelles compétences avec nos cours en ligne dispensés par des experts.
+          </p>
+          <router-link
+            to="/courses"
+            class="btn btn-primary btn-lg font-bold shadow-lg shadow-primary/30"
+          >
+            Explorer les cours
+          </router-link>
         </div>
       </div>
     </section>
 
-    <!-- Trusted By Section -->
-    <section class="bg-base-200/50 py-8 border-b border-base-200">
-        <div class="container mx-auto px-4 text-center">
-            <p class="text-base-content/50 text-sm font-semibold mb-6 uppercase tracking-wider">Les meilleures entreprises nous font confiance</p>
-            <div class="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-50 grayscale hover:grayscale-0 transition-all duration-300">
-                <!-- Placeholder Logos -->
-                <span class="text-xl font-black">Google</span>
-                <span class="text-xl font-black">Facebook</span>
-                <span class="text-xl font-black">Amazon</span>
-                <span class="text-xl font-black">Microsoft</span>
-                <span class="text-xl font-black">Netflix</span>
-            </div>
-        </div>
-    </section>
-
     <!-- Featured Courses Section -->
-    <section class="container mx-auto px-4 py-16">
-        <div class="flex justify-between items-end mb-10">
-            <div>
-                <h2 class="text-3xl font-bold mb-2 text-base-content">Une large sélection de cours</h2>
-                <p class="text-base-content/60 text-lg">Choisissez parmi plus de 100 000 cours vidéo en ligne.</p>
-            </div>
-            <router-link to="/courses" class="link link-primary font-bold hidden md:inline-flex hover:no-underline">
-              Voir tout les cours
-            </router-link>
+    <section class="container mx-auto px-6 py-14">
+      <div class="flex justify-between items-end mb-8">
+        <div>
+          <h2 class="text-2xl md:text-3xl font-bold text-base-content">Cours populaires</h2>
+          <p class="text-base-content/60 mt-1">Les cours les mieux notés par notre communauté</p>
         </div>
+        <router-link
+          to="/courses"
+          class="link link-primary font-semibold text-sm hidden md:inline-flex hover:no-underline"
+        >
+          Voir tout →
+        </router-link>
+      </div>
 
-        <div v-if="courseStore.loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-             <div v-for="n in 4" :key="n" class="card bg-base-100 border border-base-200 h-80 animate-pulse rounded-none">
-                <div class="h-40 bg-base-300 w-full"></div>
-                <div class="p-4 space-y-4">
-                    <div class="h-4 bg-base-300 w-3/4"></div>
-                    <div class="h-4 bg-base-300 w-1/2"></div>
-                </div>
-             </div>
+      <!-- Loading skeleton -->
+      <div
+        v-if="courseStore.loading"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+      >
+        <div
+          v-for="n in 4"
+          :key="n"
+          class="card bg-base-100 border border-base-200 h-72 animate-pulse rounded-xl"
+        >
+          <div class="h-40 bg-base-300 rounded-t-xl"></div>
+          <div class="p-4 space-y-3">
+            <div class="h-4 bg-base-300 rounded w-3/4"></div>
+            <div class="h-3 bg-base-300 rounded w-1/2"></div>
+          </div>
         </div>
+      </div>
 
-        <div v-else-if="courseStore.error" class="alert alert-error shadow-lg rounded-none">
-            <span>{{ courseStore.error }}</span>
-        </div>
-        
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <template v-for="course in courseStore.courses" :key="course.id">
-                 <router-link :to="{ name: 'course-detail', params: { slug: course.slug } }">
-                    <CourseCard :course="course" class="h-full hover:-translate-y-1 hover:shadow-xl transition-all duration-300" />
-                 </router-link>
-            </template>
-        </div>
-        
-        <div class="text-center mt-10 md:hidden">
-          <router-link to="/courses" class="btn btn-outline btn-wide rounded-none">
-            Voir tous les cours
-          </router-link>
-        </div>
-    </section>
-    
-    <!-- Top Categories -->
-    <section class="bg-base-100 py-16">
-        <div class="container mx-auto px-4">
-            <h2 class="text-2xl font-bold mb-8 text-base-content">Catégories principales</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <a href="#" class="p-4 border border-base-200 hover:bg-base-200/50 hover:shadow-sm transition-all flex flex-col gap-2 group">
-                    <span class="text-3xl group-hover:scale-110 transition-transform origin-left">💻</span>
-                    <span class="font-bold text-lg">Développement</span>
-                </a>
-                 <a href="#" class="p-4 border border-base-200 hover:bg-base-200/50 hover:shadow-sm transition-all flex flex-col gap-2 group">
-                    <span class="text-3xl group-hover:scale-110 transition-transform origin-left">🎨</span>
-                    <span class="font-bold text-lg">Design</span>
-                </a>
-                 <a href="#" class="p-4 border border-base-200 hover:bg-base-200/50 hover:shadow-sm transition-all flex flex-col gap-2 group">
-                    <span class="text-3xl group-hover:scale-110 transition-transform origin-left">📊</span>
-                    <span class="font-bold text-lg">Business</span>
-                </a>
-                 <a href="#" class="p-4 border border-base-200 hover:bg-base-200/50 hover:shadow-sm transition-all flex flex-col gap-2 group">
-                    <span class="text-3xl group-hover:scale-110 transition-transform origin-left">📣</span>
-                    <span class="font-bold text-lg">Marketing</span>
-                </a>
-                 <a href="#" class="p-4 border border-base-200 hover:bg-base-200/50 hover:shadow-sm transition-all flex flex-col gap-2 group">
-                    <span class="text-3xl group-hover:scale-110 transition-transform origin-left">📸</span>
-                    <span class="font-bold text-lg">Photographie</span>
-                </a>
-                 <a href="#" class="p-4 border border-base-200 hover:bg-base-200/50 hover:shadow-sm transition-all flex flex-col gap-2 group">
-                    <span class="text-3xl group-hover:scale-110 transition-transform origin-left">🎵</span>
-                    <span class="font-bold text-lg">Musique</span>
-                </a>
-                 <a href="#" class="p-4 border border-base-200 hover:bg-base-200/50 hover:shadow-sm transition-all flex flex-col gap-2 group">
-                    <span class="text-3xl group-hover:scale-110 transition-transform origin-left">🌱</span>
-                    <span class="font-bold text-lg">Développement personnel</span>
-                </a>
-                 <a href="#" class="p-4 border border-base-200 hover:bg-base-200/50 hover:shadow-sm transition-all flex flex-col gap-2 group">
-                    <span class="text-3xl group-hover:scale-110 transition-transform origin-left">🏥</span>
-                    <span class="font-bold text-lg">Santé et bien-être</span>
-                </a>
-            </div>
-        </div>
+      <!-- Error -->
+      <div v-else-if="courseStore.error" class="alert alert-error">
+        <span>{{ courseStore.error }}</span>
+      </div>
+
+      <!-- Course Grid -->
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <router-link
+          v-for="course in courseStore.courses"
+          :key="course.id"
+          :to="{ name: 'course-detail', params: { slug: course.slug } }"
+          class="hover:-translate-y-1 transition-transform duration-200"
+        >
+          <CourseCard :course="course" class="h-full shadow-sm hover:shadow-md transition-shadow" />
+        </router-link>
+      </div>
+
+      <!-- Mobile "See all" -->
+      <div class="text-center mt-8 md:hidden">
+        <router-link to="/courses" class="btn btn-outline btn-wide">
+          Voir tous les cours
+        </router-link>
+      </div>
     </section>
 
-    <!-- Instructor CTA -->
-    <section class="container mx-auto px-4 py-16">
-        <div class="flex flex-col md:flex-row items-center gap-12 border border-base-200 p-8 md:p-0 shadow-sm">
-            <div class="w-full md:w-1/2 h-64 md:h-96">
-                <img src="https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80" alt="Instructor" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" />
-            </div>
-            <div class="w-full md:w-1/2 p-4 md:p-8 text-center md:text-left">
-                <h2 class="text-3xl font-bold mb-4">Devenez formateur</h2>
-                <p class="text-lg text-base-content/70 mb-8 leading-relaxed">
-                    Formateurs du monde entier, enseignez à des millions d'étudiants sur Stratinka. Nous vous offrons les outils et les compétences pour enseigner ce que vous aimez.
-                </p>
-                <button class="btn btn-neutral btn-lg rounded-none w-full md:w-auto">Commencer à enseigner</button>
-            </div>
-        </div>
-    </section>
+    <!-- Categories Section -->
+    <section class="bg-base-200/40 py-14">
+      <div class="container mx-auto px-6">
+        <h2 class="text-2xl font-bold mb-8 text-base-content">Catégories</h2>
 
-    <!-- Business CTA -->
-    <section class="container mx-auto px-4 pb-16">
-        <div class="flex flex-col md:flex-row-reverse items-center gap-12 border border-base-200 p-8 md:p-0 shadow-sm">
-            <div class="w-full md:w-1/2 h-64 md:h-96">
-                <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1632&q=80" alt="Business" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" />
-            </div>
-            <div class="w-full md:w-1/2 p-4 md:p-8 text-center md:text-left">
-                <div class="text-2xl font-black mb-2 flex items-center justify-center md:justify-start gap-2">
-                    <span class="w-8 h-8 rounded bg-primary flex items-center justify-center text-white text-sm">S</span>
-                    Stratinka Business
-                </div>
-                <h2 class="text-3xl font-bold mb-4">Formez vos équipes</h2>
-                <p class="text-lg text-base-content/70 mb-8 leading-relaxed">
-                    Offrez à vos équipes un accès illimité à plus de 19 000 des meilleurs cours Stratinka, n'importe où, n'importe quand.
-                </p>
-                <button class="btn btn-neutral btn-lg rounded-none w-full md:w-auto">Découvrir Stratinka Business</button>
-            </div>
+        <!-- Loading skeleton -->
+        <div v-if="categoryStore.loading" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div v-for="n in 8" :key="n" class="h-16 bg-base-300 rounded-xl animate-pulse"></div>
         </div>
-    </section>
 
+        <!-- Categories grid -->
+        <div v-else class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <button
+            v-for="cat in categoryStore.categories"
+            :key="cat.id"
+            @click="goToCategory(cat.slug)"
+            class="flex items-center gap-3 p-4 bg-base-100 border border-base-200 rounded-xl hover:border-primary/40 hover:bg-primary/5 transition-all text-left group"
+          >
+            <span class="text-2xl">{{ cat.icon }}</span>
+            <div class="min-w-0">
+              <span class="font-semibold text-sm text-base-content block truncate">{{
+                cat.name
+              }}</span>
+              <span v-if="cat.subcategories?.length" class="text-xs text-base-content/40">
+                {{ cat.subcategories.length }} sous-cat.
+              </span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </section>
   </div>
 </template>

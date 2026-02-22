@@ -1,7 +1,27 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import axios from 'axios' // We'll assume a tailored axios instance usually, but raw for now is okay or import from services
+import axios from 'axios'
 
+// ============================================================
+// Configuration — swap to real URL when backend is ready
+// ============================================================
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 10000,
+})
+
+// Attach bearer token to every request automatically
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+// ============================================================
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const token = ref(localStorage.getItem('token') || null)
@@ -9,20 +29,64 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!token.value)
 
   async function login(credentials) {
-    // Mock login for now or real API call
-    // const response = await axios.post('/api/login', credentials)
-    // token.value = response.data.token
-    // user.value = response.data.user
-    
-    // Simulating login
-    token.value = 'fake-jwt-token'
-    user.value = {
+    try {
+      // ── Real API call (uncomment when backend ready) ──────
+      // const response = await api.post('/auth/login', credentials)
+      // token.value = response.data.token
+      // user.value = response.data.user
+      // localStorage.setItem('token', token.value)
+
+      // ── Mock (remove when backend is integrated) ──────────
+      await new Promise((resolve) => setTimeout(resolve, 700))
+      token.value = 'mock-jwt-token'
+      user.value = {
         id: 1,
-        name: 'John Doe',
+        name: credentials.name || 'Utilisateur Test',
         email: credentials.email,
-        avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d'
+        role: 'student',
+        avatar: `https://i.pravatar.cc/150?u=${credentials.email}`,
+      }
+      localStorage.setItem('token', token.value)
+    } catch (error) {
+      const message = error.response?.data?.message || 'Identifiants incorrects'
+      throw new Error(message)
     }
-    localStorage.setItem('token', token.value)
+  }
+
+  async function register(credentials) {
+    try {
+      // ── Real API call (uncomment when backend ready) ──────
+      // const response = await api.post('/auth/register', credentials)
+      // token.value = response.data.token
+      // user.value = response.data.user
+      // localStorage.setItem('token', token.value)
+
+      // ── Mock ──────────────────────────────────────────────
+      await login(credentials)
+    } catch (error) {
+      const message = error.response?.data?.message || "Erreur lors de l'inscription"
+      throw new Error(message)
+    }
+  }
+
+  async function fetchUser() {
+    if (!token.value) return
+    try {
+      // ── Real API call (uncomment when backend ready) ──────
+      // const response = await api.get('/auth/me')
+      // user.value = response.data
+
+      // ── Mock ──────────────────────────────────────────────
+      user.value = {
+        id: 1,
+        name: 'Utilisateur Test',
+        email: 'test@stratinka.com',
+        role: 'student',
+        avatar: 'https://i.pravatar.cc/150?u=test@stratinka.com',
+      }
+    } catch (error) {
+      logout()
+    }
   }
 
   function logout() {
@@ -31,23 +95,5 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('token')
   }
 
-  async function fetchUser() {
-    if (!token.value) return
-    try {
-        // const response = await axios.get('/api/user')
-        // user.value = response.data
-        
-        // Mock
-        user.value = {
-            id: 1,
-            name: 'John Doe',
-            email: 'john@example.com',
-            avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d'
-        }
-    } catch (error) {
-        logout()
-    }
-  }
-
-  return { user, token, isAuthenticated, login, logout, fetchUser }
+  return { user, token, isAuthenticated, login, register, logout, fetchUser }
 })

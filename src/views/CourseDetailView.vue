@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { useCourseStore } from '../stores/courses'
 import { useAuthStore } from '../stores/auth'
 import { useCommentStore } from '../stores/comments'
+import { useHead } from '@unhead/vue'
 
 const route = useRoute()
 const courseStore = useCourseStore()
@@ -14,6 +15,25 @@ const loadCourse = () => {
   courseStore.fetchCourseBySlug(route.params.slug)
   commentStore.fetchComments(route.params.slug)
 }
+
+// Reactive SEO based on the loaded course
+useHead({
+  title: () => courseStore.currentCourse?.title || 'Chargement du cours...',
+  meta: [
+    {
+      name: 'description',
+      content: () =>
+        courseStore.currentCourse?.description?.substring(0, 160) ||
+        'Détails du cours sur Stratinka.',
+    },
+    { property: 'og:title', content: () => courseStore.currentCourse?.title },
+    {
+      property: 'og:description',
+      content: () => courseStore.currentCourse?.description?.substring(0, 160),
+    },
+    { property: 'og:image', content: () => courseStore.currentCourse?.thumbnail },
+  ],
+})
 
 onMounted(loadCourse)
 watch(

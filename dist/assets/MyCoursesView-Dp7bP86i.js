@@ -1,0 +1,1 @@
+import{T as e,_ as t,b as n,n as r}from"./index-_gb6sFfk.js";var i={},a={class:`container mx-auto p-4`};function o(r,i){return e(),n(`div`,a,[...i[0]||=[t(`h1`,{class:`text-3xl font-bold`},`Mes cours`,-1),t(`p`,null,`Espace étudiant à venir...`,-1)]])}var s=r(i,[[`render`,o]]);export{s as default};

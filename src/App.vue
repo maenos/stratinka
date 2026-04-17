@@ -2,7 +2,22 @@
 import { useAuthStore } from './stores/auth'
 import { useRouter } from 'vue-router'
 import { ref, watch, onMounted } from 'vue'
+import { useHead } from '@unhead/vue'
 import AuthModal from './components/AuthModal.vue'
+
+useHead({
+  titleTemplate: (title) =>
+    title ? `${title} | Stratinka LMS` : 'Stratinka LMS - Apprenez sans limites',
+  meta: [
+    {
+      name: 'description',
+      content:
+        "La plateforme d'apprentissage en ligne qui transforme vos ambitions en compétences concrètes.",
+    },
+    { property: 'og:site_name', content: 'Stratinka LMS' },
+    { property: 'og:type', content: 'website' },
+  ],
+})
 
 const authStore = useAuthStore()
 const router = useRouter() // router instance is available but usually we navigate via router-link or helper

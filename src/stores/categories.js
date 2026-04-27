@@ -1,15 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import axios from 'axios'
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
-
-const api = axios.create({ baseURL: API_BASE_URL })
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
-  return config
-})
+import { api } from '@/api'
 
 export const useCategoryStore = defineStore('categories', () => {
   const categories = ref([])
@@ -96,15 +87,16 @@ export const useCategoryStore = defineStore('categories', () => {
     loading.value = true
     error.value = null
     try {
-      // ── Real API call (uncomment when backend ready) ────────
-      // const response = await api.get('/categories')
-      // categories.value = response.data.data
+      // ── Real API call ──
+      const response = await api.get('/categories')
+      categories.value = response.data.member || response.data
 
-      // ── Mock ────────────────────────────────────────────────
-      await new Promise((resolve) => setTimeout(resolve, 300))
-      categories.value = mockCategories
+      // ── Mock ──
+      // await new Promise((resolve) => setTimeout(resolve, 300))
+      // categories.value = mockCategories
     } catch (err) {
       error.value = 'Erreur lors du chargement des catégories'
+      console.error(err)
     } finally {
       loading.value = false
     }

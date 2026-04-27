@@ -4,6 +4,18 @@ import { useCourseStore } from '../stores/courses'
 import { useCategoryStore } from '../stores/categories'
 import CourseCard from '../components/CourseCard.vue'
 import { useRouter } from 'vue-router'
+import { useHead } from '@unhead/vue'
+
+useHead({
+  title: 'Accueil',
+  meta: [
+    {
+      name: 'description',
+      content:
+        'Découvrez les meilleurs cours sur Stratinka. Devenez un expert en développement, design et business.',
+    },
+  ],
+})
 
 const courseStore = useCourseStore()
 const categoryStore = useCategoryStore()
@@ -124,7 +136,7 @@ const goToCategory = (slug) => {
             @click="goToCategory(cat.slug)"
             class="flex items-center gap-3 p-4 bg-base-100 border border-base-200 rounded-xl hover:border-primary/40 hover:bg-primary/5 transition-all text-left group"
           >
-            <span class="text-2xl">{{ cat.icon }}</span>
+            <span class="text-2xl">{{ cat.icon || '📁' }}</span>
             <div class="min-w-0">
               <span class="font-semibold text-sm text-base-content block truncate">{{
                 cat.name

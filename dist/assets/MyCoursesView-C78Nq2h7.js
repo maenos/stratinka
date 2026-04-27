@@ -1,0 +1,1 @@
+import{C as e,h as t,n,v as r}from"./index-XpqSEK_a.js";var i={},a={class:`container mx-auto p-4`};function o(n,i){return e(),r(`div`,a,[...i[0]||=[t(`h1`,{class:`text-3xl font-bold`},`Mes cours`,-1),t(`p`,null,`Espace étudiant à venir...`,-1)]])}var s=n(i,[[`render`,o]]);export{s as default};

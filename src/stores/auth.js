@@ -1,99 +1,111 @@
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import axios from 'axios'
 
-// ============================================================
-// Configuration — swap to real URL when backend is ready
-// ============================================================
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+import { authApi, clientApi, fetchSanctumCsrfCookie } from '@/services/api'
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-})
+const persistedToken = localStorage.getItem('client_token')
 
-// Attach bearer token to every request automatically
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
-
-// ============================================================
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref(null)
-  const token = ref(localStorage.getItem('token') || null)
+  const student = ref(null)
+  const token = ref(persistedToken)
+  const initialized = ref(false)
+  const initializing = ref(false)
+  const loginError = ref(null)
+  let pendingInit = null
 
-  const isAuthenticated = computed(() => !!token.value)
+  if (token.value) {
+    clientApi.defaults.headers.common.Authorization = `Bearer ${token.value}`
+    authApi.defaults.headers.common.Authorization = `Bearer ${token.value}`
+  }
 
-  async function login(credentials) {
-    try {
-      // ── Real API call (uncomment when backend ready) ──────
-      // const response = await api.post('/auth/login', credentials)
-      // token.value = response.data.token
-      // user.value = response.data.user
-      // localStorage.setItem('token', token.value)
+  const isAuthenticated = computed(() => !!student.value || !!token.value)
 
-      // ── Mock (remove when backend is integrated) ──────────
-      await new Promise((resolve) => setTimeout(resolve, 700))
-      token.value = 'mock-jwt-token'
-      user.value = {
-        id: 1,
-        name: credentials.name || 'Utilisateur Test',
-        email: credentials.email,
-        role: 'student',
-        avatar: `https://i.pravatar.cc/150?u=${credentials.email}`,
-      }
-      localStorage.setItem('token', token.value)
-    } catch (error) {
-      const message = error.response?.data?.message || 'Identifiants incorrects'
-      throw new Error(message)
+  const applyToken = (nextToken) => {
+    token.value = nextToken || null
+    if (nextToken) {
+      localStorage.setItem('client_token', nextToken)
+      clientApi.defaults.headers.common.Authorization = `Bearer ${nextToken}`
+      authApi.defaults.headers.common.Authorization = `Bearer ${nextToken}`
+    } else {
+      localStorage.removeItem('client_token')
+      delete clientApi.defaults.headers.common.Authorization
+      delete authApi.defaults.headers.common.Authorization
     }
   }
 
-  async function register(credentials) {
+  const fetchCurrentUser = async () => {
     try {
-      // ── Real API call (uncomment when backend ready) ──────
-      // const response = await api.post('/auth/register', credentials)
-      // token.value = response.data.token
-      // user.value = response.data.user
-      // localStorage.setItem('token', token.value)
-
-      // ── Mock ──────────────────────────────────────────────
-      await login(credentials)
+      const { data } = await clientApi.get('/user')
+      student.value = data
+      return data
     } catch (error) {
-      const message = error.response?.data?.message || "Erreur lors de l'inscription"
-      throw new Error(message)
+      student.value = null
+      if (!token.value) return null
+      applyToken(null)
+      return null
     }
   }
 
-  async function fetchUser() {
-    if (!token.value) return
-    try {
-      // ── Real API call (uncomment when backend ready) ──────
-      // const response = await api.get('/auth/me')
-      // user.value = response.data
+  const initialize = async () => {
+    if (initialized.value) return
+    if (pendingInit) return pendingInit
 
-      // ── Mock ──────────────────────────────────────────────
-      user.value = {
-        id: 1,
-        name: 'Utilisateur Test',
-        email: 'test@stratinka.com',
-        role: 'student',
-        avatar: 'https://i.pravatar.cc/150?u=test@stratinka.com',
-      }
+    initializing.value = true
+    pendingInit = fetchCurrentUser()
+      .catch(() => null)
+      .finally(() => {
+        initialized.value = true
+        initializing.value = false
+        pendingInit = null
+      })
+
+    return pendingInit
+  }
+
+  const login = async ({ email, password }) => {
+    loginError.value = null
+    await fetchSanctumCsrfCookie()
+    const response = await authApi.post('/login', { email, password })
+    const nextToken = response.data?.token || null
+    applyToken(nextToken)
+    await fetchCurrentUser()
+  }
+
+  const register = async (payload) => {
+    loginError.value = null
+    await fetchSanctumCsrfCookie()
+    const response = await authApi.post('/register', payload)
+    const nextToken = response.data?.token || null
+    applyToken(nextToken)
+    if (!nextToken) {
+      await login({ email: payload.email, password: payload.password })
+      return
+    }
+    await fetchCurrentUser()
+  }
+
+  const logout = async () => {
+    try {
+      await authApi.post('/logout')
     } catch (error) {
-      logout()
+      // Clear local state even if the backend session is already gone.
+    } finally {
+      student.value = null
+      applyToken(null)
     }
   }
 
-  function logout() {
-    token.value = null
-    user.value = null
-    localStorage.removeItem('token')
+  return {
+    student,
+    token,
+    initialized,
+    initializing,
+    loginError,
+    isAuthenticated,
+    initialize,
+    fetchCurrentUser,
+    login,
+    register,
+    logout,
   }
-
-  return { user, token, isAuthenticated, login, register, logout, fetchUser }
 })

@@ -1,183 +1,98 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+
 import { api } from '@/api'
 
+const fallbackCourses = [
+  {
+    id: 1,
+    professorId: 1,
+    title: 'Trading pour débutants',
+    level: 'beginner',
+    thumbnail: 'https://images.unsplash.com/photo-1642543348745-7be69489d6f3?auto=format&fit=crop&w=1200&q=80',
+    description: 'Comprendre la structure du marché, le risque, et vos premières routines.',
+    instructor: {
+      name: 'Aminata Traoré',
+      avatar: 'https://i.pravatar.cc/200?img=32',
+    },
+    chapters: [
+      {
+        id: 1,
+        title: 'Chapitre 1 · Fondations',
+        lessons: [
+          { id: 1, title: 'Introduction', duration: '15:00', isFreePreview: true },
+          { id: 2, title: 'Journal de trading', duration: '12:30', isFreePreview: false },
+        ],
+      },
+    ],
+  },
+]
+
 export const useCourseStore = defineStore('courses', () => {
-  const courses = ref([])
-  const currentCourse = ref(null)
+  const list = ref([])
+  const current = ref(null)
+  const currentLesson = ref(null)
   const loading = ref(false)
   const error = ref(null)
 
-  // Mock data for MVP
-  const mockCourses = [
-    {
-      id: 1,
-      slug: 'vuejs-3-masterclass',
-      title: 'Vue.js 3 Masterclass: De Zéro à Héros',
-      description: 'Maîtrisez Vue 3, Composition API, Pinia et Vue Router.',
-      thumbnail: 'https://picsum.photos/seed/vue/800/450',
-      author: { name: 'Evan You', avatar: 'https://i.pravatar.cc/150?u=evan' },
-      rating: 4.8,
-      students: 12500,
-      price: 49.99,
-      category: 'Développement Web',
-      level: 'Intermédiaire',
-      duration: '20h',
-    },
-    {
-      id: 2,
-      slug: 'tailwindcss-design',
-      title: 'Design Moderne avec Tailwind CSS',
-      description: 'Créez des interfaces magnifiques sans sortir de votre HTML.',
-      thumbnail: 'https://picsum.photos/seed/tailwind/800/450',
-      author: { name: 'Adam Wathan', avatar: 'https://i.pravatar.cc/150?u=adam' },
-      rating: 4.9,
-      students: 8300,
-      price: 39.99,
-      category: 'Design',
-      level: 'Débutant',
-      duration: '10h',
-    },
-    {
-      id: 3,
-      slug: 'python-data-science',
-      title: 'Python pour la Data Science',
-      description: 'Analysez des données complexes avec Pandas et NumPy.',
-      thumbnail: 'https://picsum.photos/seed/python/800/450',
-      author: { name: 'Guido V.', avatar: 'https://i.pravatar.cc/150?u=guido' },
-      rating: 4.7,
-      students: 5600,
-      price: 0,
-      category: 'Data Science',
-      level: 'Avancé',
-      duration: '35h',
-    },
-  ]
-
-  async function fetchCourses(filters = {}) {
+  const fetchCourses = async (professorId) => {
     loading.value = true
     error.value = null
     try {
-      // ── Real API call ──
-      const params = { ...filters }
-      const response = await api.get('/courses', { params })
-      courses.value = response.data.member || response.data
-
-      // ── Mock ──
-      // await new Promise((resolve) => setTimeout(resolve, 800))
-
-      // let results = [...mockCourses]
-
-      // if (filters.search) {
-      //   const query = filters.search.toLowerCase()
-      //   results = results.filter(
-      //     (c) =>
-      //       c.title.toLowerCase().includes(query) || c.description.toLowerCase().includes(query),
-      //   )
-      // }
-
-      // if (filters.category && filters.category.length > 0) {
-      //   results = results.filter((c) => filters.category.includes(c.category))
-      // }
-
-      // if (filters.level && filters.level.length > 0) {
-      //   results = results.filter((c) => filters.level.includes(c.level))
-      // }
-
-      // if (filters.price) {
-      //   // 'free' or 'paid'
-      //   if (filters.price === 'free') {
-      //     results = results.filter((c) => c.price === 0)
-      //   } else if (filters.price === 'paid') {
-      //     results = results.filter((c) => c.price > 0)
-      //   }
-      // }
-
-      // courses.value = results
+      const { data } = await api.get('/courses', {
+        params: { professorId },
+      })
+      list.value = Array.isArray(data) ? data : []
     } catch (err) {
-      error.value = 'Erreur lors du chargement des cours'
+      list.value = fallbackCourses.filter((course) => course.professorId === Number(professorId))
+      error.value = null
     } finally {
       loading.value = false
     }
   }
 
-  async function fetchCourseBySlug(slug) {
+  const fetchCourse = async (id) => {
     loading.value = true
     error.value = null
     try {
-      // ── Real API call ──
-      // Adjust the route as per your API Platform config (querying by slug is usually /courses?slug=x)
-      const response = await api.get('/courses', { params: { slug: slug } })
-      const data = response.data.member || response.data
-      currentCourse.value = data.length > 0 ? data[0] : null
-
-      // ── Mock ──
-      // await new Promise((resolve) => setTimeout(resolve, 500))
-      // currentCourse.value = mockCourses.find((c) => c.slug === slug) || null
-
-      // // Mock detailed content if needed (sections, lessons)
-      // if (currentCourse.value && !currentCourse.value.sections) {
-      //   currentCourse.value.sections = [
-      //     {
-      //       title: 'Introduction',
-      //       lessons: [
-      //         {
-      //           id: 1,
-      //           title: 'Bienvenue dans le cours',
-      //           type: 'video',
-      //           duration: '2:30',
-      //           completed: false,
-      //         },
-      //         {
-      //           id: 2,
-      //           title: "Configuration de l'environnement",
-      //           type: 'article',
-      //           duration: '5:00',
-      //           completed: false,
-      //         },
-      //       ],
-      //     },
-      //     {
-      //       title: 'Les bases',
-      //       lessons: [
-      //         {
-      //           id: 3,
-      //           title: 'Votre premier composant',
-      //           type: 'video',
-      //           duration: '8:45',
-      //           completed: false,
-      //         },
-      //         {
-      //           id: 4,
-      //           title: 'Comprendre les props',
-      //           type: 'video',
-      //           duration: '6:20',
-      //           completed: false,
-      //         },
-      //         {
-      //           id: 5,
-      //           title: 'Quiz : Les bases',
-      //           type: 'quiz',
-      //           duration: '10:00',
-      //           completed: false,
-      //         },
-      //       ],
-      //     },
-      //   ]
-
-      //   currentCourse.value.whatYouWillLearn = [
-      //     'Comprendre les fondamentaux',
-      //     'Créer des applications réactives',
-      //     'Maîtriser les outils modernes',
-      //     'Déployer vos projets',
-      //   ]
-      // }
+      const { data } = await api.get(`/courses/${id}`)
+      current.value = data
     } catch (err) {
-      error.value = 'Erreur lors du chargement du cours'
+      current.value = fallbackCourses.find((course) => course.id === Number(id)) || null
+      error.value = null
     } finally {
       loading.value = false
     }
   }
 
-  return { courses, currentCourse, loading, error, fetchCourses, fetchCourseBySlug }
+  const fetchLesson = async (id) => {
+    loading.value = true
+    error.value = null
+    try {
+      const { data } = await api.get(`/lessons/${id}`)
+      currentLesson.value = data
+    } catch (err) {
+      currentLesson.value = {
+        id: Number(id),
+        title: 'Introduction',
+        description: 'Vue guidée de la première leçon avec support vidéo sécurisé.',
+        duration: '15:00',
+        videoUrl: '/streaming/lessons/1/video',
+      }
+      error.value = null
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return {
+    list,
+    current,
+    currentLesson,
+    loading,
+    error,
+    fetchCourses,
+    fetchCourse,
+    fetchLesson,
+  }
 })

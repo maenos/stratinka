@@ -1,74 +1,67 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+
 import { api } from '@/api'
 
+const fallbackSubscriptions = [
+  {
+    id: 10,
+    professorId: 1,
+    planId: 12,
+    status: 'active',
+    startsAt: '2026-04-01T09:00:00Z',
+    endsAt: '2026-05-01T09:00:00Z',
+    plan: {
+      id: 12,
+      name: 'Pack Trader Pro',
+      features: ['courses', 'lives', 'books'],
+    },
+    professor: {
+      id: 1,
+      name: 'Aminata Traoré',
+    },
+  },
+]
+
 export const useSubscriptionStore = defineStore('subscriptions', () => {
-  const subscriptions = ref([])
-  const currentSubscription = ref(null)
+  const list = ref([])
   const loading = ref(false)
   const error = ref(null)
 
-  // ── Mock data ──────────────────────────────
-  const mockSubscriptions = [
-    {
-      id: 1,
-      userId: 1,
-      planId: 2,
-      status: 'active',
-      startDate: '2023-01-01',
-      endDate: '2023-12-31',
-    },
-    {
-      id: 2,
-      userId: 2,
-      planId: 1,
-      status: 'canceled',
-      startDate: '2023-05-01',
-      endDate: '2023-06-01',
-    },
-  ]
+  const active = computed(() => list.value.filter((subscription) => subscription.status === 'active'))
 
-  async function fetchSubscriptions() {
+  const fetchMy = async () => {
     loading.value = true
     error.value = null
     try {
-      // ── Real API call ──
-      // const response = await api.get('/subscriptions')
-      // subscriptions.value = response.data.member || response.data
-
-      // ── Mock ──
-      await new Promise((resolve) => setTimeout(resolve, 300))
-      subscriptions.value = mockSubscriptions
+      const { data } = await api.get('/subscriptions')
+      list.value = Array.isArray(data) ? data : []
     } catch (err) {
-      error.value = 'Erreur lors du chargement des abonnements'
-      console.error(err)
+      list.value = fallbackSubscriptions
+      error.value = null
     } finally {
       loading.value = false
     }
   }
 
-  async function fetchSubscriptionById(id) {
-    loading.value = true
-    error.value = null
-    try {
-      // const response = await api.get(`/subscriptions/${id}`)
-      // currentSubscription.value = response.data
-      await new Promise((resolve) => setTimeout(resolve, 300))
-      currentSubscription.value = mockSubscriptions.find((s) => s.id === Number(id)) || null
-    } catch (err) {
-      error.value = "Erreur lors du chargement de l'abonnement"
-      console.error(err)
-    } finally {
-      loading.value = false
-    }
+  const subscribe = async ({ planId, paymentRef = null }) => {
+    const { data } = await api.post('/subscriptions', { planId, paymentRef })
+    list.value.unshift(data)
+    return data
+  }
+
+  const cancel = async (id) => {
+    await api.delete(`/subscriptions/${id}`)
+    list.value = list.value.filter((subscription) => subscription.id !== id)
   }
 
   return {
-    subscriptions,
-    currentSubscription,
+    list,
+    active,
     loading,
     error,
-    fetchSubscriptions,
-    fetchSubscriptionById,
+    fetchMy,
+    subscribe,
+    cancel,
   }
 })

@@ -1,0 +1,82 @@
+name: Deploy vuejs App to ovh Subdomain
+
+on:
+  push:
+    branches:
+      - main # Déclenche sur la branche `main`
+      - release # Déclenche sur la branche `release`
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Étape 1 : Vérifier le code source
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Étape 2 : Installer Bun
+      - name: Install Bun
+        run: |
+          curl -fsSL https://bun.sh/install | bash
+
+      - name: Add Bun to PATH
+        run: echo "$HOME/.bun/bin" >> $GITHUB_PATH
+
+      # Étape 3 : Installer les dépendances avec Bun
+      - name: Install dependencies
+        run: bun install
+
+      # Étape 4 : Construire l'application
+      - name: Build vuejs App
+        env:
+          VITE_BASE_URL: ${{ secrets.VITE_BASE_URL }}
+        run: bun run build
+
+      # Étape 5 : Ajouter un fichier .htaccess pour la configuration
+      - name: Create .htaccess file
+        run: |
+          echo "RewriteEngine On" > ./dist/.htaccess
+          echo "RewriteBase /" >> ./dist/.htaccess
+          echo "RewriteCond %{REQUEST_FILENAME} !-f" >> ./dist/.htaccess
+          echo "RewriteCond %{REQUEST_FILENAME} !-d" >> ./dist/.htaccess
+          echo "RewriteRule ^(.*)$ /index.html [L,QSA]" >> ./dist/.htaccess
+          echo "" >> ./dist/.htaccess
+          echo "# Configuration du cache" >> ./dist/.htaccess
+          echo "<IfModule mod_headers.c>" >> ./dist/.htaccess
+          echo "  # Désactiver le cache pour les fichiers HTML (toujours récupérer la dernière version)" >> ./dist/.htaccess
+          echo "  <FilesMatch \"\.(html|htm)$\">" >> ./dist/.htaccess
+          echo "    Header set Cache-Control \"no-cache, no-store, must-revalidate\"" >> ./dist/.htaccess
+          echo "    Header set Pragma \"no-cache\"" >> ./dist/.htaccess
+          echo "    Header set Expires \"0\"" >> ./dist/.htaccess
+          echo "  </FilesMatch>" >> ./dist/.htaccess
+          echo "" >> ./dist/.htaccess
+          echo "  # Cache pour les ressources statiques (CSS, JS, images) - 1 an" >> ./dist/.htaccess
+          echo "  <FilesMatch \"\.(css|js|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$\">" >> ./dist/.htaccess
+          echo "    Header set Cache-Control \"public, max-age=31536000\"" >> ./dist/.htaccess
+          echo "  </FilesMatch>" >> ./dist/.htaccess
+          echo "</IfModule>" >> ./dist/.htaccess
+          echo "" >> ./dist/.htaccess
+          echo "# Configuration alternative avec mod_expires" >> ./dist/.htaccess
+          echo "<IfModule mod_expires.c>" >> ./dist/.htaccess
+          echo "  ExpiresActive On" >> ./dist/.htaccess
+          echo "  # Pas de cache pour HTML" >> ./dist/.htaccess
+          echo "  ExpiresByType text/html \"access plus 0 seconds\"" >> ./dist/.htaccess
+          echo "  # Cache long pour les ressources statiques" >> ./dist/.htaccess
+          echo "  ExpiresByType text/css \"access plus 1 year\"" >> ./dist/.htaccess
+          echo "  ExpiresByType application/javascript \"access plus 1 year\"" >> ./dist/.htaccess
+          echo "  ExpiresByType image/png \"access plus 1 year\"" >> ./dist/.htaccess
+          echo "  ExpiresByType image/jpg \"access plus 1 year\"" >> ./dist/.htaccess
+          echo "  ExpiresByType image/jpeg \"access plus 1 year\"" >> ./dist/.htaccess
+          echo "  ExpiresByType image/gif \"access plus 1 year\"" >> ./dist/.htaccess
+          echo "  ExpiresByType image/svg+xml \"access plus 1 year\"" >> ./dist/.htaccess
+          echo "</IfModule>"
+      # Étape 5 : Déployer via FTP
+      - name: Deploy to Hostinger
+        uses: SamKirkland/FTP-Deploy-Action@4.3.3
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./dist/
+          server-dir: /public_html/
